@@ -1,6 +1,6 @@
 = ktor image:https://travis-ci.org/daggerok/kotlin-ktor.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/kotlin-ktor"]
 
-This repo contains one more light web framework
+This repo contains yet another light web framework for kotlin
 
 .rest api
 [source,bash]
@@ -17,7 +17,7 @@ http :8080
 ----
 bash gradlew build
 docker-compose up
-# ...
+# query rest api...
 docker-compose down -v
 ----
 

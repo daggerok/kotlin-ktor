@@ -1,9 +1,7 @@
 buildscript {
   ext {
-    version = "0.0.1"
     kotlinVersion = "1.1.51"
     ktorVersion = "0.9.0"
-    group = "daggerok"
   }
 
   repositories {
@@ -23,8 +21,9 @@ plugins {
 
 apply plugin: "kotlin"
 
+version = "0.0.1"
+group = "daggerok"
 mainClassName = "daggerok.MainKt"
-
 targetCompatibility = sourceCompatibility = 1.8
 
 compileKotlin {

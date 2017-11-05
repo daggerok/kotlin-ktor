@@ -13,12 +13,12 @@ jdk:
 install: true
 before_install:
   - sudo apt update
-  - sudo apt install -y python-pip curl jq
+  - sudo apt install -y python-pip
+  - sudo pip install httpie
   - sudo kill $(sudo lsof -t -i:8080) | true
 
 script:
   - bash gradlew clean build
-  - bash gradlww run &
+  - bash gradlew run &
   - sleep 15
   - http :8080
-  - sudo kill $(sudo lsof -t -i:8080) | sudo killall -9 java | true
