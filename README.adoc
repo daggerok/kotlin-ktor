@@ -1,4 +1,4 @@
-= ktor image:https://travis-ci.org/daggerok/ktor.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/ktor"]
+= ktor image:https://travis-ci.org/daggerok/kotlin-ktor.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/kotlin-ktor"]
 
 This repo contains one more light web framework
 
