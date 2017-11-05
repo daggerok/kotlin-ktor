@@ -1,0 +1,24 @@
+group: edge
+dist: trusty
+
+env:
+  global:
+    TERM=dumb
+
+language: java
+jdk:
+  - openjdk8
+  - oraclejdk8
+
+install: true
+before_install:
+  - sudo apt update
+  - sudo apt install -y python-pip curl jq
+  - sudo kill $(sudo lsof -t -i:8080) | true
+
+script:
+  - bash gradlew clean build
+  - bash gradlww run &
+  - sleep 15
+  - http :8080
+  - sudo kill $(sudo lsof -t -i:8080) | sudo killall -9 java | true

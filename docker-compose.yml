@@ -1,0 +1,10 @@
+version: "2.1"
+
+services:
+
+  app:
+    image: 127.0.0.1:5000/app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    ports: ["8080:8080"]

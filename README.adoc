@@ -1,0 +1,44 @@
+= ktor image:https://travis-ci.org/daggerok/ktor.svg?branch=master["Build Status", link="https://travis-ci.org/daggerok/ktor"]
+
+This repo contains one more light web framework
+
+.rest api
+[source,bash]
+----
+http :8080
+
+{
+    "message": "hello!"
+}
+----
+
+.docker-compose
+[source,bash]
+----
+bash gradlew build
+docker-compose up
+# ...
+docker-compose down -v
+----
+
+.docker
+[source,bash]
+----
+bash gradlew build
+docker build -t ktor .
+docker run --rm --name ktor -p 8080:8080 ktor
+java -jar build/libs/*.jar
+----
+
+.build and run (gradle shadow plugin)
+[source,bash]
+----
+bash gradlew build
+ava -jar build/libs/*.jar
+----
+
+.quickstart (application plugin)
+[source,bash]
+----
+bash gradlew run
+----

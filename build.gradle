@@ -1,0 +1,68 @@
+buildscript {
+  ext {
+    version = "0.0.1"
+    kotlinVersion = "1.1.51"
+    ktorVersion = "0.9.0"
+    group = "daggerok"
+  }
+
+  repositories {
+    mavenCentral()
+  }
+  dependencies {
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
+  }
+}
+
+plugins {
+  id "idea"
+  id "java"
+  id "application"
+  id "com.github.johnrengelman.shadow" version "2.0.1"
+}
+
+apply plugin: "kotlin"
+
+mainClassName = "daggerok.MainKt"
+
+targetCompatibility = sourceCompatibility = 1.8
+
+compileKotlin {
+  kotlinOptions.jvmTarget = "1.8"
+}
+
+compileTestKotlin {
+  kotlinOptions.jvmTarget = "1.8"
+}
+
+kotlin {
+  experimental {
+    coroutines "enable"
+  }
+}
+
+repositories {
+  mavenCentral()
+  maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+  maven { url "https://dl.bintray.com/kotlin/ktor" }
+}
+
+dependencies {
+  compile "org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlinVersion"
+  compile "io.ktor:ktor-server-netty:$ktorVersion"
+  compile "ch.qos.logback:logback-classic:1.2.1"
+  //testCompile "junit:junit:4.12"
+}
+
+shadowJar {
+  baseName = "app"
+  classifier = null
+  version = null
+}
+
+assemble.dependsOn shadowJar
+jar.enabled = false
+
+clean.doFirst {
+  delete "$projectDir/out"
+}
