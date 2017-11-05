@@ -65,3 +65,8 @@ jar.enabled = false
 clean.doFirst {
   delete "$projectDir/out"
 }
+
+task wrapper(type: Wrapper) {
+  gradleVersion = "4.3"
+  distributionType = "ALL"
+}
