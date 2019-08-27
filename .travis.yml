@@ -1,22 +1,43 @@
-group: edge
-dist: trusty
-
-env:
-  global:
-    TERM=dumb
+notifications:
+  email: false
+git:
+  quiet: true
+  depth: 1
 
 language: java
 jdk: openjdk8
+python: 3
 
-services:
-  - docker
+service:
+- docker
+
+addons:
+  apt:
+    update: true
+    packages:
+    - sudo
+    - lsof
+    - wget
+    - bash
+    - curl
+    - jq
+    - docker-ce
+    - python3-dev
+    - python3-pip
+    - python3-six
+    - python3-setuptools
 
 install: true
 before_install:
-  - sudo apt update
-  - sudo apt install -y python-pip docker-ce
-  - sudo pip install httpie
-  - sudo kill $(sudo lsof -t -i:8080) || echo 'nothing to kill...'
+- docker-compose -v
+- export PATH=$HOME/.local/bin:$PATH
+- pip3 install --user $(whoami) --upgrade pip >/dev/null # pip3 -> pip
+- pip install --user $(whoami) --upgrade docker-compose httpie >/dev/null 2>&1
+- http --version --debug
+- docker-compose -v
+#
+- source <(curl -s https://raw.githubusercontent.com/daggerok/bash-functions/master/main.bash)
+- stop_any 80 8001 8002 8080 5432
 
 jobs:
   include:
@@ -25,49 +46,56 @@ jobs:
     name: dist install
     jdk: openjdk8
     script:
-      - bash gradlew
+      - ./gradlew
       - bash build/install/kotlin-ktor/bin/kotlin-ktor &
+      - sleep 2s
       - http :8080
 
   - stage: test
     name: docker-compose
     jdk: openjdk8
     script:
-      - bash gradlew clean build
+      - ./gradlew clean build
       - docker build -t ktor-app .
       - docker-compose down -v --rm local
       - docker-compose build --no-cache
-      - docker-compose up -d ; docker-compose logs -f -t &
+      - docker-compose up -d
+      - docker-compose logs -f -t &
+      - sleep 3s
       - http :8080
       - docker-compose down -v --rm local
-
-  - stage: test
-    name: docker
-    jdk: openjdk8
-    script:
-      - bash gradlew clean build
-      - docker build -t ktor-app .
-      - docker run -d -it --rm --name my-ktor-app -p 8080:8080 ktor-app
-      - http :8080
-      - docker rm -f -v my-ktor-app
-      - docker rmi -f ktor-app
 
   - stage: test
     name: docker jdk11
     jdk: openjdk11
     script:
-      - bash gradlew clean build
+      - ./gradlew clean build
       - docker build -t ktor-app .
-      - docker run -d -it --rm --name my-ktor-app -p 8080:8080 ktor-app
+      - docker run -d -it --rm --name ktor-app -p 8080:8080 ktor-app
+      - sleep 2s
+      - docker logs -t ktor-app
       - http :8080
-      - docker rm -f -v my-ktor-app
+      - docker rm -f -v ktor-app
+      - docker rmi -f ktor-app
+
+  - stage: test
+    name: docker
+    jdk: openjdk8
+    script:
+      - ./gradlew clean build
+      - docker build -t ktor-app .
+      - docker run -d -it --rm --name ktor-app -p 8080:8080 ktor-app
+      - sleep 2s
+      - docker logs -t ktor-app
+      - http :8080
+      - docker rm -f -v ktor-app
       - docker rmi -f ktor-app
 
   - stage: test
     name: good old build
     jdk: openjdk8
     script:
-      - bash gradlew clean run &
+      - bash gradlew ; bash gradlew run &
       - sleep 15
       - http :8080
 
@@ -75,7 +103,7 @@ jobs:
     name: good old build jdk11
     jdk: openjdk11
     script:
-      - bash gradlew clean run &
+      - bash gradlew ; bash gradlew run &
       - sleep 15
       - http :8080
 
@@ -89,7 +117,7 @@ jobs:
       - http :8080
 
   - stage: test
-    name: jat jar jdk11
+    name: fat jar jdk11
     jdk: openjdk11
     script:
       - bash gradlew clean build
@@ -105,3 +133,10 @@ jobs:
 after_script:
   - bash gradlew --stop || echo 'oops!'
   - sudo kill $(sudo lsof -t -i:8080) || echo 'nothing to kill...'
+
+cache:
+  directories:
+  - ~/.docker
+  - ~/.m2
+  packages: true
+  pip: true
