@@ -1,43 +1,24 @@
-buildscript {
-  ext {
-    kotlinVersion = "1.3.50"
-    ktorVersion = "1.2.3"
-  }
-
-  repositories {
-    mavenCentral()
-  }
-  dependencies {
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
-  }
-}
-
 plugins {
-  id "idea"
-  id "java"
-  id "application"
-  id "com.github.johnrengelman.shadow" version "5.0.0"
+  id 'idea'
+  id 'java'
+  id 'application'
+  id 'org.jetbrains.kotlin.jvm' version '1.3.50'
+  id 'com.github.ben-manes.versions' version '0.22.0'
 }
 
-apply plugin: "kotlin"
+version = '0.0.3'
+group = 'com.github.daggerok.ktor'
 
-version = "0.0.2"
-group = "daggerok"
-mainClassName = "daggerok.MainKt"
-targetCompatibility = sourceCompatibility = 1.8
+java {
+  sourceCompatibility = JavaVersion.VERSION_1_8
+}
 
 compileKotlin {
-  kotlinOptions.jvmTarget = "1.8"
+  kotlinOptions.jvmTarget = '1.8'
 }
 
 compileTestKotlin {
-  kotlinOptions.jvmTarget = "1.8"
-}
-
-kotlin {
-  experimental {
-    coroutines "enable"
-  }
+  kotlinOptions.jvmTarget = '1.8'
 }
 
 repositories {
@@ -45,26 +26,50 @@ repositories {
 }
 
 dependencies {
-  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"
-  compile "io.ktor:ktor-server-netty:$ktorVersion"
-  compile "ch.qos.logback:logback-classic:1.2.1"
-  //testCompile "junit:junit:4.12"
+  implementation(platform('org.jetbrains.kotlin:kotlin-bom:1.3.50'))
+  implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+  implementation 'io.ktor:ktor-server-netty:1.2.3'
+  implementation 'ch.qos.logback:logback-classic:1.3.0-alpha4'
 }
-
-shadowJar {
-  baseName = "app"
-  classifier = null
-  version = null
-}
-
-assemble.dependsOn shadowJar
-jar.enabled = false
 
 clean.doFirst {
   delete "$projectDir/out"
 }
 
 wrapper {
-  gradleVersion = "5.6"
-  distributionType = "BIN"
+  gradleVersion = '5.6'
+  distributionType = 'BIN'
 }
+
+
+application {
+  mainClassName = 'daggerok.Main'
+}
+
+jar {
+  // archiveClassifier.set('all')
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+  manifest {
+    attributes('Main-Class': application.mainClassName)
+  }
+  from(configurations
+          .runtimeClasspath
+          .collect {
+            println("lib: $it.absolutePath")
+            it.isDirectory() ? it : zipTree(it)
+          })
+  sourceSets.main.allSource.each {
+    println("app: $it.absolutePath")
+  }
+  from(sourceSets.main.output)
+}
+
+test {
+  testLogging {
+    showExceptions = true
+    showStandardStreams = true
+    events 'passed', 'skipped', 'failed'
+  }
+}
+
+defaultTasks 'clean', 'build', 'installDist'

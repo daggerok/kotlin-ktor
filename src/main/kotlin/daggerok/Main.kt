@@ -1,10 +1,6 @@
-package daggerok
+@file:JvmName("Main")
 
-/*
-fun main(args: Array<String>) {
-  println("hi!")
-}
-*/
+package daggerok
 
 import io.ktor.application.*
 import io.ktor.http.*
@@ -13,15 +9,19 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 
+/*
 fun main(args: Array<String>) {
+  println("hi!")
+}
+*/
+
+fun main() {
   val server = embeddedServer(Netty, 8080) {
     routing {
       get("/") {
         //call.respondText("hi, there!", ContentType.Text.Html)
         call.respondText("""
-          {
-            "message": "hello!"
-          }
+          { "message": "hello!" }
         """.trimIndent(), ContentType.Text.JavaScript)
       }
     }

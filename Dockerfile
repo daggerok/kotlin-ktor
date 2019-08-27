@@ -1,4 +1,5 @@
-FROM openjdk:8u131-jre-alpine
+#FROM openjdk:8u131-jre-alpine
+FROM openjdk:14-ea-8-jdk-alpine3.10
 MAINTAINER Maksim Kostromin https://github.com/daggerok
 RUN apk --update --no-cache add busybox-suid bash curl \
  && addgroup app-group \

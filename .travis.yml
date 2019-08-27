@@ -6,19 +6,102 @@ env:
     TERM=dumb
 
 language: java
-jdk:
-  - openjdk8
-  - oraclejdk8
+jdk: openjdk8
+
+services:
+  - docker
 
 install: true
 before_install:
   - sudo apt update
-  - sudo apt install -y python-pip
+  - sudo apt install -y python-pip docker-ce
   - sudo pip install httpie
-  - sudo kill $(sudo lsof -t -i:8080) | true
+  - sudo kill $(sudo lsof -t -i:8080) || echo 'nothing to kill...'
 
-script:
-  - bash gradlew clean build
-  - bash gradlew run &
-  - sleep 15
-  - http :8080
+jobs:
+  include:
+
+  - stage: test
+    name: dist install
+    jdk: openjdk8
+    script:
+      - bash gradlew
+      - bash build/install/kotlin-ktor/bin/kotlin-ktor &
+      - http :8080
+
+  - stage: test
+    name: docker-compose
+    jdk: openjdk8
+    script:
+      - bash gradlew clean build
+      - docker build -t ktor-app .
+      - docker-compose down -v --rm local
+      - docker-compose build --no-cache
+      - docker-compose up -d ; docker-compose logs -f -t &
+      - http :8080
+      - docker-compose down -v --rm local
+
+  - stage: test
+    name: docker
+    jdk: openjdk8
+    script:
+      - bash gradlew clean build
+      - docker build -t ktor-app .
+      - docker run -d -it --rm --name my-ktor-app -p 8080:8080 ktor-app
+      - http :8080
+      - docker rm -f -v my-ktor-app
+      - docker rmi -f ktor-app
+
+  - stage: test
+    name: docker jdk11
+    jdk: openjdk11
+    script:
+      - bash gradlew clean build
+      - docker build -t ktor-app .
+      - docker run -d -it --rm --name my-ktor-app -p 8080:8080 ktor-app
+      - http :8080
+      - docker rm -f -v my-ktor-app
+      - docker rmi -f ktor-app
+
+  - stage: test
+    name: good old build
+    jdk: openjdk8
+    script:
+      - bash gradlew clean run &
+      - sleep 15
+      - http :8080
+
+  - stage: test
+    name: good old build jdk11
+    jdk: openjdk11
+    script:
+      - bash gradlew clean run &
+      - sleep 15
+      - http :8080
+
+  - stage: test
+    name: jat jar
+    jdk: openjdk8
+    script:
+      - bash gradlew clean build
+      - java -jar build/libs/*.jar &
+      - sleep 5
+      - http :8080
+
+  - stage: test
+    name: jat jar jdk11
+    jdk: openjdk11
+    script:
+      - bash gradlew clean build
+      - java -jar build/libs/*.jar &
+      - sleep 5
+      - http :8080
+
+  - stage: test
+    name: dependency updates jdk11
+    jdk: openjdk11
+    script: ./gradlew dependencyUpdates -Drevision=release
+
+after_script:
+  - bash gradlew --stop || echo 'oops!'
+  - sudo kill $(sudo lsof -t -i:8080) || echo 'nothing to kill...'
